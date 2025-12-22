@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mizoram - Quiz Home</title>
-    <script src="Https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root { --mizo-red: #cc0000; --white: #ffffff; --black: #000000; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: sans-serif; background: var(--white); overflow: hidden; }
@@ -27,14 +27,12 @@
 </head>
 <body>
 
-    <div id="g_id_onload"
-     data-client_id="479746558918-nacn78gsp9n58k663hjga46jdp1ga1m0.apps.googleusercontent.com"
-     data-context="signin"
-     data-ux_mode="popup"
-     data-callback="handleSignIn"
-     data-auto_prompt="false">
-    </div>
-    
+    <div id="auth-gate">
+        <h1 style="font-size: 24px; margin-bottom: 30px;">SIGN IN TO PLAY</h1>
+        <div id="g_id_onload"
+             data-client_id="638639567472-3n4j19e2n0j6h8r4m5t6u7v8w9x0y1z2.apps.googleusercontent.com"
+             data-callback="handleSignIn">
+        </div>
         <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-size="large"></div>
     </div>
 
@@ -52,16 +50,19 @@
     </div>
 
     <script>
-        const firebaseConfig = {
-    apiKey: "AIzaSyBpONF6pVivW41SFsgIVO4cjbm6EippLfY",
-    authDomain: "tic-tac-toe-681b4.firebaseapp.com",
-    databaseURL: "https://tic-tac-toe-681b4-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "tic-tac-toe-681b4",
-    storageBucket: "tic-tac-toe-681b4.appspot.com",
-    messagingSenderId: "479746558918",
-    appId: "1:479746558918:web:cdb035bcf191aa7b4d40c7" // Updated from your screenshot
-};
-        
+        function handleSignIn(response) {
+            const payload = JSON.parse(atob(response.credential.split('.')[1]));
+            localStorage.setItem('quiz_user', payload.name);
+            document.getElementById('auth-gate').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
+        }
+
+        window.onload = () => {
+            if (localStorage.getItem('quiz_user')) {
+                document.getElementById('auth-gate').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'flex';
+            }
+        }
     </script>
 </body>
 </html>

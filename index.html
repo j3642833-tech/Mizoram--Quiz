@@ -52,19 +52,16 @@
     </div>
 
     <script>
-        function handleSignIn(response) {
-            const payload = JSON.parse(atob(response.credential.split('.')[1]));
-            localStorage.setItem('quiz_user', payload.name);
-            document.getElementById('auth-gate').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'flex';
-        }
-
-        window.onload = () => {
-            if (localStorage.getItem('quiz_user')) {
-                document.getElementById('auth-gate').style.display = 'none';
-                document.getElementById('main-ui').style.display = 'flex';
-            }
-        }
+        const firebaseConfig = {
+    apiKey: "AIzaSyBpONF6pVivW41SFsgIVO4cjbm6EippLfY",
+    authDomain: "tic-tac-toe-681b4.firebaseapp.com",
+    databaseURL: "https://tic-tac-toe-681b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "tic-tac-toe-681b4",
+    storageBucket: "tic-tac-toe-681b4.appspot.com",
+    messagingSenderId: "479746558918",
+    appId: "1:479746558918:web:cdb035bcf191aa7b4d40c7" // Updated from your screenshot
+};
+        
     </script>
 </body>
 </html>

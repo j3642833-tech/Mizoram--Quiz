@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Accuracy</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        :root { --mizo-red: #cc0000; --white: #ffffff; --black: #000000; --gold: #ffd700; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--white); margin: 0; padding-bottom: 90px; }
+        
+        .header { 
+            background: var(--black); color: var(--white); padding: 20px; 
+            text-align: center; font-size: 20px; font-weight: 900;
+            border-bottom: 4px solid var(--mizo-red);
+        }
+
+        /* Scannable Top 10 List */
+        .list-container { max-width: 500px; margin: 0 auto; padding: 5px; }
+        .rank-card { 
+            display: flex; align-items: center; padding: 10px 15px; 
+            border: 1px solid var(--black); margin-bottom: 5px; border-radius: 10px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .rank-card:active { transform: scale(0.98); }
+        .rank-1 { border: 2px solid var(--gold); background: #fffdf2; }
+
+        .rank-id { width: 40px; font-size: 18px; font-weight: 900; }
+        .u-name { flex-grow: 1; font-size: 16px; font-weight: 800; text-transform: uppercase; }
+        .u-perc-badge { background: var(--black); color: white; padding: 5px 10px; border-radius: 5px; font-weight: 900; }
+
+        /* Mizo Stats Popup (Modal) */
+        #modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; width: 85%; max-width: 350px; padding: 25px;
+            border-radius: 20px; border: 4px solid var(--black); text-align: center;
+        }
+        .modal-content h2 { border-bottom: 2px solid var(--black); padding-bottom: 10px; margin-top: 0; }
+        .stat-line { display: flex; justify-content: space-between; padding: 10px 0; font-weight: 700; border-bottom: 1px solid #eee; }
+
+        /* Footer Spacing Fix */
+        .footer {
+            position: fixed; bottom: 0; width: 100%; height: 80px;
+            background: var(--black); color: white; display: flex;
+            align-items: center; justify-content: space-around; border-top: 4px solid var(--mizo-red);
+        }
+        .f-item { text-align: center; flex: 1; }
+        .f-label { font-size: 9px; font-weight: 800; display: block; opacity: 0.7; }
+        .f-val { font-size: 14px; font-weight: 900; }
+    </style>
+</head>
+<body>
+
+    <div class="header">LEADERBOARD RANKING BY PERCENTAGE</div>
+    
+    <div class="list-container" id="leaderboard-list"></div>
+
+    <div id="modal-overlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 id="m-name">USERNAME</h2>
+            <div class="stat-line"><span>Zawhna zat:</span> <span id="m-total">0</span></div>
+            <div class="stat-line"><span>A dik zat:</span> <span id="m-correct" style="color:green">0</span></div>
+            <div class="stat-line"><span>A dik lo zat:</span> <span id="m-wrong" style="color:red">0</span></div>
+            <div class="stat-line" style="font-size: 20px; margin-top: 10px;">
+                <span>Percentage:</span> <span id="m-percent">0%</span>
+            </div>
+            <button onclick="closeModal()" style="margin-top:20px; padding: 10px 30px; background:black; color:white; border-radius:50px; font-weight:900;">OK</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="f-item"><span class="f-label">RANK</span><span id="f-rank" class="f-val">#--</span></div>
+        <div class="f-item"><span class="f-label">HMANNA HMING</span><span id="f-name" class="f-val">---</span></div>
+        <div class="f-item"><span class="f-label">DIK ZAT (%)</span><span id="f-percent" class="f-val">0%</span></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpONF6pVivW41SFsgIVO4cjbm6EippLfY",
+            databaseURL: "https://tic-tac-toe-681b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tic-tac-toe-681b4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const myName = localStorage.getItem('quiz_user') || "Guest";
+
+        function showUserDetail(name, total, correct, wrong, percent) {
+            document.getElementById('m-name').innerText = name;
+            document.getElementById('m-total').innerText = total;
+            document.getElementById('m-correct').innerText = correct;
+            document.getElementById('m-wrong').innerText = wrong;
+            document.getElementById('m-percent').innerText = percent + "%";
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+        function loadData() {
+            db.ref('rankings').on('value', (snapshot) => {
+                let players = [];
+                snapshot.forEach((child) => {
+                    let d = child.val();
+                    let t = (d.correct || 0) + (d.wrong || 0);
+                    let p = t > 0 ? ((d.correct / t) * 100).toFixed(1) : 0;
+                    players.push({ name: d.name, correct: d.correct || 0, wrong: d.wrong || 0, total: t, accuracy: parseFloat(p) });
+                });
+
+                players.sort((a, b) => b.accuracy - a.accuracy);
+                const list = document.getElementById('leaderboard-list');
+                list.innerHTML = "";
+
+                players.forEach((p, i) => {
+                    const card = document.createElement('div');
+                    card.className = `rank-card ${i === 0 ? 'rank-1' : ''}`;
+                    card.onclick = () => showUserDetail(p.name, p.total, p.correct, p.wrong, p.accuracy);
+                    
+                    let icon = i === 0 ? "👑" : i + 1;
+                    card.innerHTML = `
+                        <div class="rank-id">${icon}</div>
+                        <div class="u-name">${p.name}</div>
+                        <div class="u-perc-badge">${p.accuracy}%</div>
+                    `;
+                    list.appendChild(card);
+
+                    if(p.name === myName) {
+                        document.getElementById('f-rank').innerText = `#${i+1}`;
+                        document.getElementById('f-name').innerText = p.name;
+                        document.getElementById('f-percent').innerText = `${p.accuracy}%`;
+                    }
+                });
+            });
+        }
+        window.onload = loadData;
+    </script>
+</body>
+</html>

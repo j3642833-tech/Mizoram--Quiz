@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mizoram - Quiz Home</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        :root { --mizo-red: #cc0000; --white: #ffffff; --black: #000000; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: sans-serif; background: var(--white); overflow: hidden; }
+        
+        /* Auth Gate - Only shows Sign In */
+        #auth-gate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--white); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* Main UI - Hidden until Login */
+        #main-ui { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        
+        h1 { font-size: 36px; font-weight: 900; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .nav-btn { width: 280px; padding: 20px; margin: 12px 0; font-size: 18px; font-weight: 800; border-radius: 50px; text-decoration: none; display: block; text-transform: uppercase; transition: 0.3s; }
+        .start { background: var(--mizo-red); color: var(--white); border: none; }
+        .lb { background: var(--white); color: var(--black); border: 2px solid var(--black); }
+
+        .community-area { margin-top: 60px; }
+        .wa-icon img { width: 50px; height: 50px; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-gate">
+        <h1 style="font-size: 24px; margin-bottom: 30px;">SIGN IN TO PLAY</h1>
+        <div id="g_id_onload"
+             data-client_id="479746558918-nacn78gsp9n58k663hjga46jdp1ga1m0.apps.googleusercontent.com"
+             data-callback="handleSignIn">
+        </div>
+        <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-size="large"></div>
+    </div>
+
+    <div id="main-ui">
+        <h1>MIZORAM - QUIZ</h1>
+        <a href="quiz.html" class="nav-btn start">TAN RAWH</a>
+        <a href="leaderboard.html" class="nav-btn lb">LEADERBOARD</a>
+
+        <div class="community-area">
+            <p style="font-weight:700;">Kan community-ah lo zawm ve rawh:</p>
+            <a href="https://chat.whatsapp.com/DNwkir5xJVi4xBazqweXPr" class="wa-icon">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function handleSignIn(response) {
+            const payload = JSON.parse(atob(response.credential.split('.')[1]));
+            localStorage.setItem('quiz_user', payload.name);
+            document.getElementById('auth-gate').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
+        }
+
+        window.onload = () => {
+            if (localStorage.getItem('quiz_user')) {
+                document.getElementById('auth-gate').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'flex';
+            }
+        }
+    </script>
+</body>
+</html>

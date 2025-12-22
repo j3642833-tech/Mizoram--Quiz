@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mizoram - Quiz</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --mizo-red: #cc0000;
+            --white: #ffffff;
+            --black: #000000;
+            --correct-green: #2ecc71;
+            --wrong-red: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--white);
+            color: var(--black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #setup-screen, #quiz-screen, #result-screen {
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            padding: 30px;
+            background: var(--white);
+            border-radius: 25px;
+            border: 4px solid var(--black);
+        }
+
+        .hidden { display: none; }
+
+        #timer-box {
+            font-size: 50px;
+            font-weight: bold;
+            color: var(--mizo-red);
+            margin-bottom: 10px;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin: 12px 0;
+            border: 2px solid var(--black);
+            border-radius: 12px;
+            background: var(--white);
+            color: var(--black);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: left;
+            position: relative;
+        }
+
+        .correct { border-color: var(--correct-green) !important; background: var(--correct-green) !important; color: white !important; }
+        .wrong { border-color: var(--wrong-red) !important; background: var(--wrong-red) !important; color: white !important; }
+        
+        .icon { position: absolute; right: 20px; top: 16px; }
+
+        .primary-btn {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            padding: 15px 45px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            display: inline-block;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .secondary-btn {
+            background: var(--white);
+            color: var(--black);
+            border: 2px solid var(--black);
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-block;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen">
+        <h1 style="color: var(--black); font-weight: 900;">MIZORAM - QUIZ</h1>
+        <p>Zawhna zat tur thlang rawh (5-10)</p>
+        <input type="number" id="q-count" value="10" min="5" max="10" style="padding:10px; width:60px; text-align:center; background:#fff; color:#000; border:2px solid #000;">
+        <br>
+        <button class="primary-btn" onclick="startQuiz()">TAN RAWH</button>
+        <br>
+        <a href="leaderboard.html" class="secondary-btn">LEADERBOARD</a>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div id="timer-box">12</div>
+        <h2 id="question-text" style="color: black;">...</h2>
+        <div id="options-container"></div>
+        <hr style="border:1px solid #000; margin:20px 0;">
+        <div id="score-live" style="font-size: 20px; color: var(--mizo-red); font-weight: bold;">Point: 0</div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h1 style="color: black; font-weight: 900;">I ZO TA!</h1>
+        <div id="final-stats" style="font-size: 22px; margin-bottom: 20px; color: black;"></div>
+        <button class="primary-btn" onclick="location.reload()">A thar hlap</button>
+        <br>
+        <a href="leaderboard.html" class="secondary-btn">LEADERBOARD EN RAWH</a>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpONF6pVivW41SFsgIVO4cjbm6EippLfY",
+            databaseURL: "https://tic-tac-toe-681b4-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tic-tac-toe-681b4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const masterQuestions = [
+            { id: 1, q: "Mizoram-ah District engzat nge awm?", a: "11", o: ["8", "11", "12", "13"] },
+            { id: 2, q: "Aizawl atanga Lunglei inkar hlat zawng (NH-54)?", a: "165 km", o: ["120 km", "165 km", "235 km", "190 km"] },
+            { id: 3, q: "Mizo thufing: 'Sairil phung ...'?", a: "In thlah lo", o: ["In thlah lo", "A tlan chak", "A mawi lo", "A hram ring"] },
+            { id: 4, q: "Vantawng Khawhthla a san zawng?", a: "751 ft", o: ["500 ft", "751 ft", "600 ft", "850 ft"] },
+            { id: 5, q: "Solomon's Temple-ah hian lung (pillar) engzat nge ding?", a: "12", o: ["4", "8", "12", "16"] },
+            { id: 6, q: "Mizoram Assembly Speaker hmasa ber chu tunge?", a: "H. Thansanga", o: ["H. Thansanga", "Pu Hiphei", "Dr. Kenneth Chawngliana", "Pu Rokamlova"] },
+            { id: 7, q: "Mizoram University (MZU) awmna khua?", a: "Tanhril", o: ["Durtlang", "Zemabawk", "Tanhril", "Vaivakawn"] },
+            { id: 8, q: "Mizo thla zingah 'Thalpui' hi eng thla nge?", a: "February", o: ["January", "February", "March", "April"] },
+            { id: 9, q: "Mizo hmeichhe zinga Padma Shree dawng hmasa ber?", a: "Anselm Sawihlira", o: ["B. Sangkhumi", "Anselm Sawihlira", "Lalsangzuali Sailo", "Buangi Sailo"] },
+            { id: 10, q: "Mizoram hian State dang engzat nge a dep (border)?", a: "3", o: ["2", "3", "4", "5"] },
+            { id: 11, q: "Mizoram tlang sang ber Phawngpui san zawng chu?", a: "2157 m", o: ["1500 m", "2157 m", "2500 m", "1800 m"] },
+            { id: 12, q: "Mizoram-a National Highway sei ber chu?", a: "NH-54", o: ["NH-54", "NH-150", "NH-44A", "NH-154"] },
+            { id: 13, q: "Lunglei hi kum engzat-ah nge din a nih?", a: "1888", o: ["1888", "1900", "1872", "1922"] },
+            { id: 14, q: "Mizoram District zinga area lian ber chu?", a: "Lunglei", o: ["Aizawl", "Lunglei", "Champhai", "Mamit"] },
+            { id: 15, q: "Chapchar Kut hi eng thla-ah nge hman a nih tlangpui?", a: "March", o: ["February", "March", "April", "January"] },
+            { id: 16, q: "Aizawl khua hi kum engzat-ah nge din a nih?", a: "1890", o: ["1890", "1870", "1910", "1905"] },
+            { id: 17, q: "Mizoram-a dil lian ber chu?", a: "Tam Dil", o: ["Tam Dil", "Palak Dil", "Rih Dil", "Mung Dil"] },
+            { id: 18, q: "Mizoram-a 'Blue Mountain' tia an hriat lar chu?", a: "Phawngpui", o: ["Lengteng", "Phawngpui", "Hmuifang", "Reiek"] },
+            { id: 19, q: "Mizoram Autonomous District Council awm zat chu?", a: "3", o: ["1", "2", "3", "4"] },
+            { id: 20, q: "Siaha district khawpui chu?", a: "Siaha", o: ["Siaha", "Lawngtlai", "Sangau", "Tuipang"] }
+        ];
+
+        let currentQuestions = [];
+        let qIndex = 0;
+        let points = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let timer;
+        let timeLeft = 12;
+
+        function startQuiz() {
+            let count = parseInt(document.getElementById('q-count').value) || 10;
+            let history = JSON.parse(localStorage.getItem('q_history') || "[]");
+            let available = masterQuestions.filter(q => !history.includes(q.id));
+            
+            if (available.length < count) { history = []; available = masterQuestions; }
+
+            currentQuestions = available.sort(() => Math.random() - 0.5).slice(0, count);
+
+            currentQuestions.forEach(q => {
+                history.push(q.id);
+                if (history.length > 20) history.shift();
+            });
+            localStorage.setItem('q_history', JSON.stringify(history));
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (qIndex >= currentQuestions.length) return endQuiz();
+            timeLeft = 12;
+            document.getElementById('timer-box').innerText = timeLeft;
+            document.getElementById('question-text').innerText = currentQuestions[qIndex].q;
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            [...currentQuestions[qIndex].o].sort(() => Math.random() - 0.5).forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(opt, btn);
+                container.appendChild(btn);
+            });
+
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-box').innerText = timeLeft;
+                if (timeLeft <= 0) { clearInterval(timer); handleAnswer(null, null); }
+            }, 1000);
+        }
+
+        function handleAnswer(selected, btn) {
+            clearInterval(timer);
+            const correct = currentQuestions[qIndex].a;
+            const buttons = document.querySelectorAll('.option-btn');
+
+            buttons.forEach(b => {
+                b.disabled = true;
+                if (b.innerText === correct) {
+                    b.classList.add('correct');
+                } else if (selected === b.innerText && selected !== correct) {
+                    b.classList.add('wrong');
+                }
+            });
+
+            if (selected === correct) {
+                points += 5;
+                correctCount++;
+            } else {
+                wrongCount++;
+            }
+            document.getElementById('score-live').innerText = `Point: ${points}`;
+            setTimeout(() => { qIndex++; loadQuestion(); }, 2000);
+        }
+
+        function endQuiz() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            const uName = localStorage.getItem('quiz_user') || "Guest";
+            const uID = localStorage.getItem('quiz_user_id') || "Guest_ID";
+
+            db.ref('rankings/' + uName).once('value').then((snapshot) => {
+                let data = snapshot.val() || { correct: 0, wrong: 0, points: 0 };
+                db.ref('rankings/' + uName).set({
+                    name: uName,
+                    points: data.points + points,
+                    correct: (data.correct || 0) + correctCount,
+                    wrong: (data.wrong || 0) + wrongCount
+                });
+            });
+
+            document.getElementById('final-stats').innerHTML = `I Score: ${points}<br>Dik zat: ${correctCount} | Dik lo: ${wrongCount}`;
+        }
+    </script>
+</body>
+</html>

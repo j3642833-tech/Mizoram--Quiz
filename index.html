@@ -27,12 +27,14 @@
 </head>
 <body>
 
-    <div id="auth-gate">
-        <h1 style="font-size: 24px; margin-bottom: 30px;">SIGN IN TO PLAY</h1>
-        <div id="g_id_onload"
-             data-client_id="479746558918-nacn78gsp9n58k663hjga46jdp1ga1m0.apps.googleusercontent.com"
-             data-callback="handleSignIn">
-        </div>
+    <div id="g_id_onload"
+     data-client_id="479746558918-nacn78gsp9n58k663hjga46jdp1ga1m0.apps.googleusercontent.com"
+     data-context="signin"
+     data-ux_mode="popup"
+     data-callback="handleSignIn"
+     data-auto_prompt="false">
+    </div>
+    
         <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-size="large"></div>
     </div>
 

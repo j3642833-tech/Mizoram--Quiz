@@ -164,15 +164,26 @@
         let timer;
         let timeLeft = 12;
 
+        let customQuestions = [];
+        db.ref('custom_questions').once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    let qData = child.val();
+                    if(!qData.id) qData.id = child.key;
+                    customQuestions.push(qData);
+                });
+            }
+        });
+
         function startQuiz() {
             let count = parseInt(document.getElementById('q-count').value) || 10;
             let history = JSON.parse(localStorage.getItem('q_history') || "[]");
-            let available = masterQuestions.filter(q => !history.includes(q.id));
             
-            if (available.length < count) { history = []; available = masterQuestions; }
+            let fullPool = masterQuestions.concat(customQuestions);
+            let available = fullPool.filter(q => !history.includes(q.id));
+            if (available.length < count) { history = []; available = fullPool; }
 
             currentQuestions = available.sort(() => Math.random() - 0.5).slice(0, count);
-
             currentQuestions.forEach(q => {
                 history.push(q.id);
                 if (history.length > 20) history.shift();
@@ -211,7 +222,6 @@
             clearInterval(timer);
             const correct = currentQuestions[qIndex].a;
             const buttons = document.querySelectorAll('.option-btn');
-
             buttons.forEach(b => {
                 b.disabled = true;
                 if (b.innerText === correct) {
@@ -220,7 +230,6 @@
                     b.classList.add('wrong');
                 }
             });
-
             if (selected === correct) {
                 points += 5;
                 correctCount++;
@@ -234,9 +243,7 @@
         function endQuiz() {
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
-            
             const uName = localStorage.getItem('quiz_user') || "Guest";
-
             db.ref('rankings/' + uName).once('value').then((snapshot) => {
                 let data = snapshot.val() || { correct: 0, wrong: 0, points: 0 };
                 db.ref('rankings/' + uName).set({
@@ -246,7 +253,6 @@
                     wrong: (data.wrong || 0) + wrongCount
                 });
             });
-
             document.getElementById('final-stats').innerHTML = `I Score: ${points}<br>Dik zat: ${correctCount} | Dik lo: ${wrongCount}`;
         }
     </script>

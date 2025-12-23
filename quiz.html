@@ -7,14 +7,62 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
+    
+    #timer-box { 
+    /* The Circular Face */
+    width: 80px; 
+    height: 80px; 
+    border: 5px solid var(--black);
+    border-radius: 50%; 
+    background: white;
+    
+    /* Centering the Number */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 38px; 
+    font-weight: 900; 
+    color: var(--mizo-red);
+    
+    /* Position for the Bells */
+    margin: 0 auto 20px auto; 
+    position: relative; 
+}
+
+/* The Alarm Bells (⏰ Style) */
+#timer-box::before, #timer-box::after {
+    content: ''; 
+    position: absolute; 
+    width: 25px; 
+    height: 12px;
+    background: var(--black); 
+    top: -8px; 
+    border-radius: 10px 10px 0 0;
+}
+#timer-box::before { left: 0px; transform: rotate(-45deg); }
+#timer-box::after { right: 0px; transform: rotate(45deg); }
+
+/* The Shake Animation */
+.shake { 
+    animation: alarm-shake 0.2s infinite; 
+    color: var(--wrong-red) !important; 
+    border-color: var(--wrong-red) !important; 
+}
+
+@keyframes alarm-shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(6deg); }
+    75% { transform: rotate(-6deg); }
+}
+
         :root { --mizo-red: #cc0000; --white: #ffffff; --black: #000000; --correct-green: #2ecc71; --wrong-red: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--white); color: var(--black); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--black); color: var(--black); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
         #setup-screen, #quiz-screen, #result-screen { width: 90%; max-width: 450px; text-align: center; padding: 30px; background: var(--white); border-radius: 25px; border: 4px solid var(--black); }
         .hidden { display: none; }
         #timer-box { font-size: 50px; font-weight: bold; color: var(--mizo-red); margin-bottom: 10px; }
         .option-btn { display: block; width: 100%; padding: 16px; margin: 12px 0; border: 2px solid var(--black); border-radius: 12px; background: var(--white); color: var(--black); font-size: 16px; font-weight: bold; cursor: pointer; text-align: left; }
-        .correct { border-color: var(--correct-green) !important; background: var(--correct-green) !important; color: white !important; }
-        .wrong { border-color: var(--wrong-red) !important; background: var(--wrong-red) !important; color: white !important; }
+        .correct { border-color: var(--correct-green) !important; background: var(--correct-green) !important; color: black !important; }
+        .wrong { border-color: var(--wrong-red) !important; background: var(--wrong-red) !important; color: black !important; }
         .primary-btn { background: var(--black); color: var(--white); border: none; padding: 15px 45px; font-size: 18px; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 15px; text-transform: uppercase; }
         .secondary-btn { background: var(--white); color: var(--black); border: 2px solid var(--black); padding: 12px 30px; font-size: 16px; border-radius: 50px; cursor: pointer; margin-top: 10px; display: inline-block; text-decoration: none; font-weight: bold; }
     </style>
@@ -39,7 +87,7 @@
     <div id="result-screen" class="hidden">
         <h1 style="color: black; font-weight: 900;">I ZO TA!</h1>
         <div id="final-stats" style="font-size: 22px; margin-bottom: 20px; color: black;"></div>
-        <button class="primary-btn" onclick="location.reload()">A thar hlap</button>
+        <button class="primary-btn" onclick="location.reload()">Play Again</button>
         <br><a href="leaderboard.html" class="secondary-btn">LEADERBOARD EN RAWH</a>
     </div>
 
@@ -66,30 +114,33 @@
             { id: 7, q: "Mizoram University (MZU) awmna khua?", a: "Tanhril", o: ["Durtlang", "Zemabawk", "Tanhril", "Vaivakawn"] },
             { id: 8, q: "Mizo thla zingah 'Thalpui' hi eng thla nge?", a: "February", o: ["January", "February", "March", "April"] },
             { id: 9, q: "Mizo hmeichhe zinga Padma Shree dawng hmasa ber?", a: "Anselm Sawihlira", o: ["B. Sangkhumi", "Anselm Sawihlira", "Lalsangzuali Sailo", "Buangi Sailo"] },
-            { id: 10, q: "Mizoram hian State dang engzat nge a dep (border)?", a: "3", o: ["2", "3", "4", "5"] },
-            { id: 11, q: "Mizoram tlang sang ber Phawngpui san zawng chu?", a: "2157 m", o: ["1500 m", "2157 m", "2500 m", "1800 m"] },
-            { id: 12, q: "Mizoram-a National Highway sei ber chu?", a: "NH-54", o: ["NH-54", "NH-150", "NH-44A", "NH-154"] },
-            { id: 13, q: "Lunglei hi kum engzat-ah nge din a nih?", a: "1888", o: ["1888", "1900", "1872", "1922"] },
-            { id: 14, q: "Mizoram District zinga area lian ber chu?", a: "Lunglei", o: ["Aizawl", "Lunglei", "Champhai", "Mamit"] },
-            { id: 15, q: "Chapchar Kut hi eng thla-ah nge hman a nih tlangpui?", a: "March", o: ["February", "March", "April", "January"] },
-            { id: 16, q: "Aizawl khua hi kum engzat-ah nge din a nih?", a: "1890", o: ["1890", "1870", "1910", "1905"] },
-            { id: 17, q: "Mizoram-a dil lian ber chu?", a: "Tam Dil", o: ["Tam Dil", "Palak Dil", "Rih Dil", "Mung Dil"] },
-            { id: 18, q: "Mizoram-a 'Blue Mountain' tia an hriat lar chu?", a: "Phawngpui", o: ["Lengteng", "Phawngpui", "Hmuifang", "Reiek"] },
-            { id: 19, q: "Mizoram Autonomous District Council awm zat chu?", a: "3", o: ["1", "2", "3", "4"] },
-            { id: 20, q: "Siaha district khawpui chu?", a: "Siaha", o: ["Siaha", "Lawngtlai", "Sangau", "Tuipang"] }
+            { id: 10, q: "Mizoram hian State dang engzat nge a dep (border)?", a: "3", o: ["2", "3", "4", "5"] }
         ];
 
         let currentQuestions = [];
         let qIndex = 0, points = 0, correctCount = 0, wrongCount = 0, timer, timeLeft = 12;
 
-        function startQuiz() {
+        async function startQuiz() {
             let count = parseInt(document.getElementById('q-count').value) || 10;
+            let combinedQuestions = [...masterQuestions];
+
+            // FETCH CUSTOM QUESTIONS FROM SINGAPORE
+            try {
+                const snapshot = await db.ref('custom_questions').once('value');
+                const customData = snapshot.val();
+                if (customData) {
+                    Object.values(customData).forEach(q => combinedQuestions.push(q));
+                }
+            } catch (err) { console.error("Sync failed, my lord:", err); }
+
             let history = JSON.parse(localStorage.getItem('q_history') || "[]");
-            let available = masterQuestions.filter(q => !history.includes(q.id));
-            if (available.length < count) { history = []; available = masterQuestions; }
+            let available = combinedQuestions.filter(q => !history.includes(q.id));
+            if (available.length < count) { history = []; available = combinedQuestions; }
+            
             currentQuestions = available.sort(() => Math.random() - 0.5).slice(0, count);
-            currentQuestions.forEach(q => { history.push(q.id); if (history.length > 20) history.shift(); });
+            currentQuestions.forEach(q => { history.push(q.id); if (history.length > 50) history.shift(); });
             localStorage.setItem('q_history', JSON.stringify(history));
+
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
             loadQuestion();
@@ -134,14 +185,24 @@
         function endQuiz() {
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
+            
             let rawName = localStorage.getItem('quiz_user') || "Guest";
+            let rawEmail = localStorage.getItem('quiz_email') || "No Email";
             let safeName = rawName.replace(/[.#$\[\]]/g, "_"); 
+
             const userRef = db.ref('rankings/' + safeName);
             userRef.once('value').then((snapshot) => {
                 let d = snapshot.val() || { correct: 0, wrong: 0, points: 0 };
-                userRef.set({ name: rawName, points: (d.points || 0) + points, correct: (d.correct || 0) + correctCount, wrong: (d.wrong || 0) + wrongCount });
+                userRef.set({ 
+                    name: rawName, 
+                    email: rawEmail,
+                    points: (d.points || 0) + points, 
+                    correct: (d.correct || 0) + correctCount, 
+                    wrong: (d.wrong || 0) + wrongCount 
+                });
             });
             document.getElementById('final-stats').innerHTML = `I Score: ${points}<br>Dik zat: ${correctCount} | Dik lo: ${wrongCount}`;
+            
         }
     </script>
 </body>

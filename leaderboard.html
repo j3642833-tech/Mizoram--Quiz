@@ -62,7 +62,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const myName = localStorage.getItem('quiz_user') || "Guest";
-        let myData = null; // Store for footer popup
 
         function showUserDetail(name, total, correct, wrong, score, accuracy) {
             document.getElementById('m-name').innerText = name;
@@ -84,8 +83,23 @@
                 snapshot.forEach((child) => {
                     let d = child.val();
                     let t = (d.correct || 0) + (d.wrong || 0);
-                    let p = t > 0 ? ((d.correct / t) * 100).toFixed(1) : 0;
-                    players.push({ name: d.name, correct: d.correct || 0, wrong: d.wrong || 0, total: t, score: d.points || 0, accuracy: parseFloat(p) });
+                    let rawAcc = t > 0 ? (d.correct / t) * 100 : 0;
+                    
+                    // THE NEW MLBB LOGIC
+                    // Applying penalty to rookies to make the grind real
+                    let weightedAcc = rawAcc;
+                    if (t < 50) weightedAcc = rawAcc * 0.7; // Rookies get 70% of their actual accuracy
+                    else if (t < 150) weightedAcc = rawAcc * 0.85; // Veterans get 85%
+                    else if (t > 500) weightedAcc = rawAcc + 2.0; // Legends get a small loyalty boost
+
+                    players.push({ 
+                        name: d.name, 
+                        correct: d.correct || 0, 
+                        wrong: d.wrong || 0, 
+                        total: t, 
+                        score: d.points || 0, 
+                        accuracy: parseFloat(weightedAcc).toFixed(1) 
+                    });
                 });
 
                 players.sort((a, b) => b.accuracy - a.accuracy);
@@ -108,7 +122,6 @@
                     if(p.name === myName) {
                         document.getElementById('f-name').innerText = p.name;
                         document.getElementById('f-all-stats').innerText = `Rank: #${i+1} | Zawhna: ${p.total} | Dik zat: ${p.correct} | Dik Lo: ${p.wrong} | Score: ${p.score}`;
-                        // Set footer to open popup for YOU
                         document.getElementById('my-footer-trigger').onclick = () => showUserDetail(p.name, p.total, p.correct, p.wrong, p.score, p.accuracy);
                     }
                 });

@@ -7,105 +7,25 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        :root {
-            --mizo-red: #cc0000;
-            --white: #ffffff;
-            --black: #000000;
-            --correct-green: #2ecc71;
-            --wrong-red: #e74c3c;
-        }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--white);
-            color: var(--black);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        #setup-screen, #quiz-screen, #result-screen {
-            width: 90%;
-            max-width: 450px;
-            text-align: center;
-            padding: 30px;
-            background: var(--white);
-            border-radius: 25px;
-            border: 4px solid var(--black);
-        }
-
+        :root { --mizo-red: #cc0000; --white: #ffffff; --black: #000000; --correct-green: #2ecc71; --wrong-red: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--white); color: var(--black); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        #setup-screen, #quiz-screen, #result-screen { width: 90%; max-width: 450px; text-align: center; padding: 30px; background: var(--white); border-radius: 25px; border: 4px solid var(--black); }
         .hidden { display: none; }
-
-        #timer-box {
-            font-size: 50px;
-            font-weight: bold;
-            color: var(--mizo-red);
-            margin-bottom: 10px;
-        }
-
-        .option-btn {
-            display: block;
-            width: 100%;
-            padding: 16px;
-            margin: 12px 0;
-            border: 2px solid var(--black);
-            border-radius: 12px;
-            background: var(--white);
-            color: var(--black);
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: left;
-            position: relative;
-        }
-
+        #timer-box { font-size: 50px; font-weight: bold; color: var(--mizo-red); margin-bottom: 10px; }
+        .option-btn { display: block; width: 100%; padding: 16px; margin: 12px 0; border: 2px solid var(--black); border-radius: 12px; background: var(--white); color: var(--black); font-size: 16px; font-weight: bold; cursor: pointer; text-align: left; }
         .correct { border-color: var(--correct-green) !important; background: var(--correct-green) !important; color: white !important; }
         .wrong { border-color: var(--wrong-red) !important; background: var(--wrong-red) !important; color: white !important; }
-        
-        .icon { position: absolute; right: 20px; top: 16px; }
-
-        .primary-btn {
-            background: var(--black);
-            color: var(--white);
-            border: none;
-            padding: 15px 45px;
-            font-size: 18px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 15px;
-            display: inline-block;
-            text-decoration: none;
-            text-transform: uppercase;
-        }
-
-        .secondary-btn {
-            background: var(--white);
-            color: var(--black);
-            border: 2px solid var(--black);
-            padding: 12px 30px;
-            font-size: 16px;
-            border-radius: 50px;
-            cursor: pointer;
-            margin-top: 10px;
-            display: inline-block;
-            text-decoration: none;
-            font-weight: bold;
-        }
+        .primary-btn { background: var(--black); color: var(--white); border: none; padding: 15px 45px; font-size: 18px; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 15px; text-transform: uppercase; }
+        .secondary-btn { background: var(--white); color: var(--black); border: 2px solid var(--black); padding: 12px 30px; font-size: 16px; border-radius: 50px; cursor: pointer; margin-top: 10px; display: inline-block; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <div id="setup-screen">
         <h1 style="color: var(--black); font-weight: 900;">MIZORAM - QUIZ</h1>
         <p>Zawhna zat tur thlang rawh (5-10)</p>
-        <input type="number" id="q-count" value="10" min="5" max="10" style="padding:10px; width:60px; text-align:center; background:#fff; color:#000; border:2px solid #000;">
-        <br>
-        <button class="primary-btn" onclick="startQuiz()">TAN RAWH</button>
-        <br>
-        <a href="leaderboard.html" class="secondary-btn">LEADERBOARD</a>
+        <input type="number" id="q-count" value="10" min="5" max="10" style="padding:10px; width:60px; text-align:center; border:2px solid #000;">
+        <br><button class="primary-btn" onclick="startQuiz()">TAN RAWH</button>
+        <br><a href="leaderboard.html" class="secondary-btn">LEADERBOARD</a>
     </div>
 
     <div id="quiz-screen" class="hidden">
@@ -120,18 +40,21 @@
         <h1 style="color: black; font-weight: 900;">I ZO TA!</h1>
         <div id="final-stats" style="font-size: 22px; margin-bottom: 20px; color: black;"></div>
         <button class="primary-btn" onclick="location.reload()">A thar hlap</button>
-        <br>
-        <a href="leaderboard.html" class="secondary-btn">LEADERBOARD EN RAWH</a>
+        <br><a href="leaderboard.html" class="secondary-btn">LEADERBOARD EN RAWH</a>
     </div>
 
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDNXG3makDQ0L5XmBSuJEByWg3xHCFiWQY",
-            databaseURL: "https://mizoram-quiz-default-rtdb.firebaseio.com",
+            databaseURL: "https://mizoram-quiz-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "mizoram-quiz"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        const tickSnd = new Audio('https://www.soundjay.com/buttons/button-09.mp3');
+        const correctSnd = new Audio('https://www.soundjay.com/buttons/button-3.mp3');
+        const wrongSnd = new Audio('https://www.soundjay.com/buttons/button-10.mp3');
 
         const masterQuestions = [
             { id: 1, q: "Mizoram-ah District engzat nge awm?", a: "11", o: ["8", "11", "12", "13"] },
@@ -157,39 +80,16 @@
         ];
 
         let currentQuestions = [];
-        let qIndex = 0;
-        let points = 0;
-        let correctCount = 0;
-        let wrongCount = 0;
-        let timer;
-        let timeLeft = 12;
-
-        let customQuestions = [];
-        db.ref('custom_questions').once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                snapshot.forEach(child => {
-                    let qData = child.val();
-                    if(!qData.id) qData.id = child.key;
-                    customQuestions.push(qData);
-                });
-            }
-        });
+        let qIndex = 0, points = 0, correctCount = 0, wrongCount = 0, timer, timeLeft = 12;
 
         function startQuiz() {
             let count = parseInt(document.getElementById('q-count').value) || 10;
             let history = JSON.parse(localStorage.getItem('q_history') || "[]");
-            
-            let fullPool = masterQuestions.concat(customQuestions);
-            let available = fullPool.filter(q => !history.includes(q.id));
-            if (available.length < count) { history = []; available = fullPool; }
-
+            let available = masterQuestions.filter(q => !history.includes(q.id));
+            if (available.length < count) { history = []; available = masterQuestions; }
             currentQuestions = available.sort(() => Math.random() - 0.5).slice(0, count);
-            currentQuestions.forEach(q => {
-                history.push(q.id);
-                if (history.length > 20) history.shift();
-            });
+            currentQuestions.forEach(q => { history.push(q.id); if (history.length > 20) history.shift(); });
             localStorage.setItem('q_history', JSON.stringify(history));
-
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
             loadQuestion();
@@ -202,7 +102,6 @@
             document.getElementById('question-text').innerText = currentQuestions[qIndex].q;
             const container = document.getElementById('options-container');
             container.innerHTML = '';
-
             [...currentQuestions[qIndex].o].sort(() => Math.random() - 0.5).forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
@@ -210,10 +109,10 @@
                 btn.onclick = () => handleAnswer(opt, btn);
                 container.appendChild(btn);
             });
-
             timer = setInterval(() => {
                 timeLeft--;
                 document.getElementById('timer-box').innerText = timeLeft;
+                if (timeLeft <= 5 && timeLeft > 0) tickSnd.play();
                 if (timeLeft <= 0) { clearInterval(timer); handleAnswer(null, null); }
             }, 1000);
         }
@@ -222,20 +121,12 @@
             clearInterval(timer);
             const correct = currentQuestions[qIndex].a;
             const buttons = document.querySelectorAll('.option-btn');
+            if (selected === correct) { correctSnd.play(); points += 5; correctCount++; } else { wrongSnd.play(); wrongCount++; }
             buttons.forEach(b => {
                 b.disabled = true;
-                if (b.innerText === correct) {
-                    b.classList.add('correct');
-                } else if (selected === b.innerText && selected !== correct) {
-                    b.classList.add('wrong');
-                }
+                if (b.innerText === correct) b.classList.add('correct');
+                else if (selected === b.innerText && selected !== correct) b.classList.add('wrong');
             });
-            if (selected === correct) {
-                points += 5;
-                correctCount++;
-            } else {
-                wrongCount++;
-            }
             document.getElementById('score-live').innerText = `Point: ${points}`;
             setTimeout(() => { qIndex++; loadQuestion(); }, 2000);
         }
@@ -243,15 +134,12 @@
         function endQuiz() {
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('result-screen').classList.remove('hidden');
-            const uName = localStorage.getItem('quiz_user') || "Guest";
-            db.ref('rankings/' + uName).once('value').then((snapshot) => {
-                let data = snapshot.val() || { correct: 0, wrong: 0, points: 0 };
-                db.ref('rankings/' + uName).set({
-                    name: uName,
-                    points: (data.points || 0) + points,
-                    correct: (data.correct || 0) + correctCount,
-                    wrong: (data.wrong || 0) + wrongCount
-                });
+            let rawName = localStorage.getItem('quiz_user') || "Guest";
+            let safeName = rawName.replace(/[.#$\[\]]/g, "_"); 
+            const userRef = db.ref('rankings/' + safeName);
+            userRef.once('value').then((snapshot) => {
+                let d = snapshot.val() || { correct: 0, wrong: 0, points: 0 };
+                userRef.set({ name: rawName, points: (d.points || 0) + points, correct: (d.correct || 0) + correctCount, wrong: (d.wrong || 0) + wrongCount });
             });
             document.getElementById('final-stats').innerHTML = `I Score: ${points}<br>Dik zat: ${correctCount} | Dik lo: ${wrongCount}`;
         }

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Moderator Panel</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --wa-teal: #075e54;
+            --wa-green: #25d366;
+            --wa-bg: #ece5dd;
+            --wa-white: #ffffff;
+            --wa-gray: #f0f0f0;
+            --wa-text: #128c7e;
+            --approved-blue: #34b7f1;
+            --rejected-red: #e74c3c;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--wa-bg); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh;
+        }
+        
+        /* WhatsApp Header */
+        .header { 
+            background: var(--wa-teal); 
+            color: white; 
+            padding: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 { margin: 0; font-size: 20px; }
+        
+        /* Main Scrollable Content */
+        .content { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px;
+        }
+
+        /* Message Bubbles for Sections */
+        .section-card { 
+            background: var(--wa-white); 
+            border-radius: 10px; 
+            padding: 15px; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+        }
+        .section-title { 
+            color: var(--wa-text); 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+            text-transform: uppercase; 
+            font-size: 14px; 
+        }
+
+        /* Input Styling */
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+        }
+        
+        /* Submit Button */
+        .send-btn { 
+            background: var(--wa-green); 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            width: 100%; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 16px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        /* Tracking List */
+        .track-item { 
+            padding: 10px; 
+            border-bottom: 1px solid var(--wa-gray); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .status-tag { 
+            font-size: 12px; 
+            padding: 4px 8px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+        }
+        .sent { background: #e1ffc7; color: #555; }
+        .approved { background: #d1f4ff; color: var(--approved-blue); }
+        .rejected { background: #ffdada; color: var(--rejected-red); }
+
+        /* Language Toggle Button */
+        .lang-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1 id="title-text">MODERATOR PANEL</h1>
+    <button class="lang-btn" onclick="toggleLanguage()" id="lang-toggle-text">MIZO</button>
+</div>
+
+<div class="content">
+    
+    <div class="section-card">
+        <div class="section-title" id="sec-post">Post New Question</div>
+        <input type="text" id="q-text" placeholder="Question Text">
+        <input type="text" id="q-ans" placeholder="Correct Answer">
+        <input type="text" id="opt1" placeholder="Option 1">
+        <input type="text" id="opt2" placeholder="Option 2">
+        <input type="text" id="opt3" placeholder="Option 3">
+        <input type="text" id="opt4" placeholder="Option 4">
+        <button class="send-btn" onclick="sendToAdmin()" id="btn-submit">SEND TO ADMIN</button>
+    </div>
+
+    <div class="section-card">
+        <div class="section-title" id="sec-status">Submission History</div>
+        <div id="status-feed"></div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-title" id="sec-library">Current Game Questions</div>
+        <div id="library-feed" style="font-size: 14px; color: #666;"></div>
+    </div>
+
+    <button class="send-btn" style="background:#075e54; margin-bottom: 20px;" onclick="window.location.href='leaderboard.html'" id="btn-lead">LEADERBOARD</button>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDNXG3makDQ0L5XmBSuJEByWg3xHCFiWQY",
+        databaseURL: "https://mizoram-quiz-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "mizoram-quiz"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const user_name = localStorage.getItem('quiz_user') || "Guest";
+    const user_sid = localStorage.getItem('user_sid') || "UNAUTHORIZED";
+
+    let currentLang = 'en';
+
+    const translations = {
+        en: {
+            title: "MODERATOR PANEL",
+            lang: "MIZO",
+            secPost: "Post New Question",
+            secStatus: "Submission History",
+            secLibrary: "Current Game Questions",
+            placeholderQ: "Question Text",
+            placeholderA: "Correct Answer",
+            placeholderO: "Option",
+            btnSubmit: "SEND TO ADMIN",
+            btnLead: "LEADERBOARD",
+            sent: "SENT",
+            approved: "✔ APPROVED",
+            rejected: "✘ REJECTED",
+            noData: "No history detected.",
+            alert: "Please fill all fields!"
+        },
+        mz: {
+            title: "MODERATOR PANEL",
+            lang: "ENGLISH",
+            secPost: "Zawhna Thar Dahna",
+            secStatus: "I Zawhna Dah Tawh Te",
+            secLibrary: "Game-a Zawhna Awm Sa Te",
+            placeholderQ: "Zawhna",
+            placeholderA: "A Chhanna Dik",
+            placeholderO: "Thlan tur",
+            btnSubmit: "ADMIN HNEHAH THAWN RAWH",
+            btnLead: "LEADERBOARD EN RAWH",
+            sent: "THAWN TAWH",
+            approved: "✔ PAWM A NI",
+            rejected: "✘ HNAR A NI",
+            noData: "Engmah la dah lo.",
+            alert: "Khawngaihin dah khat vek rawh!"
+        }
+    };
+
+    function toggleLanguage() {
+        currentLang = (currentLang === 'en') ? 'mz' : 'en';
+        updateUI();
+    }
+
+    function updateUI() {
+        const t = translations[currentLang];
+        document.getElementById('title-text').innerText = t.title;
+        document.getElementById('lang-toggle-text').innerText = t.lang;
+        document.getElementById('sec-post').innerText = t.secPost;
+        document.getElementById('sec-status').innerText = t.secStatus;
+        document.getElementById('sec-library').innerText = t.secLibrary;
+        document.getElementById('q-text').placeholder = t.placeholderQ;
+        document.getElementById('q-ans').placeholder = t.placeholderA;
+        document.getElementById('opt1').placeholder = t.placeholderO + " 1";
+        document.getElementById('opt2').placeholder = t.placeholderO + " 2";
+        document.getElementById('opt3').placeholder = t.placeholderO + " 3";
+        document.getElementById('opt4').placeholder = t.placeholderO + " 4";
+        document.getElementById('btn-submit').innerText = t.btnSubmit;
+        document.getElementById('btn-lead').innerText = t.btnLead;
+        loadStatus();
+    }
+
+    function sendToAdmin() {
+        const q = document.getElementById('q-text').value;
+        const a = document.getElementById('q-ans').value;
+        const o = [
+            document.getElementById('opt1').value,
+            document.getElementById('opt2').value,
+            document.getElementById('opt3').value,
+            document.getElementById('opt4').value
+        ];
+
+        if(!q || !a || o.some(opt => opt === "")) {
+            alert(translations[currentLang].alert);
+            return;
+        }
+
+        db.ref('moderator_submissions').push({
+            q: q, a: a, o: o,
+            author: user_name,
+            authorSID: user_sid,
+            status: 'sent',
+            time: Date.now()
+        });
+        
+        document.querySelectorAll('input').forEach(i => i.value = "");
+    }
+
+    function loadStatus() {
+        db.ref('moderator_submissions').on('value', snap => {
+            const feed = document.getElementById('status-feed');
+            feed.innerHTML = '';
+            const data = snap.val();
+            const t = translations[currentLang];
+            
+            let count = 0;
+            for(let id in data) {
+                if(data[id].authorSID === user_sid) {
+                    count++;
+                    let sClass = data[id].status;
+                    let sText = t[sClass] || t.sent;
+                    feed.innerHTML += `
+                        <div class="track-item">
+                            <span>${data[id].q.substring(0, 20)}...</span>
+                            <span class="status-tag ${sClass}">${sText}</span>
+                        </div>
+                    `;
+                }
+            }
+            if(count === 0) feed.innerHTML = `<div style="text-align:center; padding:10px;">${t.noData}</div>`;
+        });
+    }
+
+    db.ref('custom_questions').on('value', snap => {
+        const feed = document.getElementById('library-feed');
+        feed.innerHTML = '';
+        const data = snap.val();
+        for(let id in data) {
+            feed.innerHTML += `<div style="padding:8px; border-bottom:1px solid #eee;">${data[id].q}</div>`;
+        }
+    });
+
+    updateUI();
+</script>
+</body>
+</html>

@@ -49,18 +49,49 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <script>
+        // FIREBASE INITIALIZATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNXG3makDQ0L5XmBSuJEByWg3xHCFiWQY",
+            databaseURL: "https://mizoram-quiz-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mizoram-quiz"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // THE REDIRECT PROTOCOL
+        function checkModeratorStatus(userName) {
+            db.ref('rankings').once('value', (snapshot) => {
+                const users = snapshot.val();
+                for (let id in users) {
+                    // Check if the user is designated as admin/mod in the database
+                    if (users[id].name === userName && users[id].admin === true) {
+                        window.location.href = 'mod.html'; // Instant kick to mod panel
+                        return;
+                    }
+                }
+                // If the user is a normal player, allow access to main UI
+                document.getElementById('auth-gate').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'flex';
+            });
+        }
+
         function handleSignIn(response) {
             const payload = JSON.parse(atob(response.credential.split('.')[1]));
             localStorage.setItem('quiz_user', payload.name);
-            document.getElementById('auth-gate').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'flex';
+            localStorage.setItem('quiz_email', payload.email);
+            // Verify status immediately after Google login
+            checkModeratorStatus(payload.name);
         }
 
         window.onload = () => {
-            if (localStorage.getItem('quiz_user')) {
-                document.getElementById('auth-gate').style.display = 'none';
-                document.getElementById('main-ui').style.display = 'flex';
+            const savedUser = localStorage.getItem('quiz_user');
+            if (savedUser) {
+                // Verify status for returning sessions
+                checkModeratorStatus(savedUser);
             }
         }
     </script>

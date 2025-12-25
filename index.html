@@ -105,5 +105,37 @@
             }
         });
     </script>
+    <script>
+    // 1. WAKE UP THE SERVICE WORKER
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+        .then(() => console.log("Service Worker Active"))
+        .catch(err => console.log("Service Worker Failed", err));
+    }
+
+    // 2. CATCH THE INSTALL POP-UP
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e; // Holds the "Real App" prompt in memory
+    });
+
+    // 3. TRIGGER THE DOWNLOAD
+    document.getElementById('installBtn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            // SHOW THE OFFICIAL "INSTALL" BOX
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                console.log('User installed the app');
+            }
+            deferredPrompt = null;
+        } else {
+            // If the phone already has the app or browser is stubborn
+            window.location.href = 'home.html';
+        }
+    });
+    </script>
+    
 </body>
 </html>

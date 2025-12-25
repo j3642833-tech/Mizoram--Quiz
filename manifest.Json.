@@ -1,7 +1,7 @@
 {
   "name": "Mizoram Quiz",
   "short_name": "MizoQuiz",
-  "start_url": "index.html",
+  "start_url": "home.html",
   "display": "standalone",
   "background_color": "#020b14",
   "theme_color": "#00f2ff",

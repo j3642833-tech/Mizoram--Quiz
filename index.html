@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mizoram Quiz - Official App</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background: radial-gradient(circle, #4a0000 0%, #000000 100%);
+            color: white; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
+        }
+        h1 { font-size: 2.5rem; margin-top: 40px; }
+        .mizo-text { font-size: 1.1rem; max-width: 90%; margin: 15px 0; line-height: 1.5; opacity: 0.9; }
+        
+        .download-btn {
+            background: white; color: black;
+            padding: 15px 45px; border-radius: 8px;
+            font-weight: bold; font-size: 1.3rem;
+            border: none; cursor: pointer;
+            text-transform: uppercase; margin: 25px 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+        }
+
+        .info-grid { width: 100%; max-width: 400px; margin-top: 30px; }
+        .info-item { margin-bottom: 35px; }
+        .big-text { font-size: 2.2rem; font-weight: bold; display: block; color: #fff; }
+        .sub-text { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.7); display: block; margin-top: 5px; }
+
+        .mod-box {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 20px; border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            margin: 20px 0; width: 100%; max-width: 350px;
+        }
+
+        .footer { margin-top: auto; padding: 30px 0; font-size: 0.85rem; opacity: 0.8; }
+        .whatsapp-btn {
+            display: inline-flex; align-items: center;
+            background: #25D366; color: white;
+            padding: 10px 20px; border-radius: 50px;
+            text-decoration: none; font-weight: bold; margin-top: 15px;
+        }
+        .whatsapp-btn i { margin-right: 8px; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <h1>Mizoram Quiz</h1>
+    
+    <p class="mizo-text">
+        Mizoram chungchang i hriatna fiahna turin he app hi download la, thil thar tam tak zir belh rawh. A hman man a awm lo (Free) vek a ni!
+    </p>
+
+    <button class="download-btn" id="installBtn">DOWNLOAD</button>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="big-text">Zawhna 50+</span>
+            <span class="sub-text">Ni tin update ziah a ni</span>
+        </div>
+        
+        <div class="info-item">
+            <span class="big-text">Leaderboard</span>
+            <span class="sub-text">Ranking System pwh kn nei e, leadboard ah i rank pwh a en thei reng e..ranking hi a percentage ah tang ah chhut ani e</span>
+        </div>
+
+        <div class="mod-box">
+            <span style="font-size: 1.2rem; font-weight: bold; color: #ffcc00;">MODERATOR RAWN NI VE LA</span>
+            <p style="font-size: 0.9rem; margin-top: 10px;">Nangma zawhna siamte dah ve la, LO UPLOAD VE TA CHE!</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Complaint neih emaw Moderator nih Duh tetan  contact tur:</p>
+        <p style="font-weight: bold; color: #00f2ff;">llevi0235@gmail.com</p>
+        
+        <a href="https://chat.whatsapp.com/DNwkir5xJVi4xBazqweXPr" class="whatsapp-btn">
+            <i class="fab fa-whatsapp"></i> Join Community
+        </a>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    window.location.href = 'home.html';
+                }
+            } else {
+                // He hmun hian home.html-ah a hruai ang che
+                window.location.href = 'home.html';
+            }
+        });
+    </script>
+</body>
+</html>
